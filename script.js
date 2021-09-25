@@ -3,6 +3,7 @@
 class Workouts {
     date = new Date()
     id = (Date.now() + '').slice(-10)
+    click = 0
 
     constructor(cords, distance, duration) {
         this.cords = cords // Array Lat and Lng
@@ -15,6 +16,10 @@ class Workouts {
         const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
         this.description = `${this.type[0].toUpperCase()}${this.type.slice(1)} on ${months[this.date.getMonth()]} ${this.date.getDate()}`
+    }
+
+    clicks() {
+        this.click++
     }
 }
 
@@ -61,6 +66,7 @@ const inputElevation = document.querySelector('.form__input--elevation');
 
 class App {
     _map
+    _mapZoomLevel = 13
     _mapEvent
     _workout = []
 
@@ -70,10 +76,11 @@ class App {
         form.addEventListener('submit', this._newWorkOut.bind(this)) // Em um event listener a variavel this sempre vai referenciar ao elemento dom que ele foi linkado, nesse caso ao form.
         // Podemos consertar isso devemos usar o bind().
 
+        inputType.addEventListener('change', this._toggleElevationField)
 
-        inputType.addEventListener('change', this._toggleElevationField())
+        containerWorkouts.addEventListener('click', this._moveToPopup.bind(this))
     }
-
+    
     _getPosition() {
         if(navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(this._loadMap.bind(this), function () {
@@ -90,7 +97,7 @@ class App {
             const cords = [latitude, longitude]
             console.log(cords)
     
-            this._map = L.map('map').setView(cords, 17);
+            this._map = L.map('map').setView(cords, this._mapZoomLevel);
     
             // console.log(this.#map)
     
@@ -235,6 +242,25 @@ class App {
         }
 
         form.insertAdjacentHTML('afterend', html)
+    }
+
+    _moveToPopup(e) {
+        const workoutEl = e.target.closest('.workout')
+
+        if(!workoutEl) return;
+
+        const workout = this._workout.find(work => work.id === workoutEl.dataset.id)
+        console.log(workout)
+
+        this._map.setView(workout.cords, this._mapZoomLevel, {
+            animate: true,
+            pan: {
+                duration: 1
+            }
+        })
+
+        // Using the public interface
+        workout.clicks()
     }
 }
 
