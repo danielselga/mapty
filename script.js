@@ -71,13 +71,16 @@ class App {
     _workout = []
 
     constructor() { //The constructor is emediatly invoked when the children class is create.
+        // Get user's Position
         this._getPosition()
 
+        // Get data from local storage
+        this._getLocalStorage()
+
+        // Atach event handlers
         form.addEventListener('submit', this._newWorkOut.bind(this)) // Em um event listener a variavel this sempre vai referenciar ao elemento dom que ele foi linkado, nesse caso ao form.
         // Podemos consertar isso devemos usar o bind().
-
         inputType.addEventListener('change', this._toggleElevationField)
-
         containerWorkouts.addEventListener('click', this._moveToPopup.bind(this))
     }
     
@@ -107,6 +110,10 @@ class App {
     
             // Handling click on map
             this._map.on('click', this._showForm.bind(this))
+        
+            this._workout.forEach(work => {
+                this._renderWorkoutMarker(work)
+            })
         }
 
     _showForm(mapE) {
@@ -185,7 +192,8 @@ class App {
     // Hide form + clear input fields
     this._hideForm()
 
-    // Clear input fields
+    // Set local storage to all workouts
+    this._setLocalStorage()
     
 
 }
@@ -260,7 +268,30 @@ class App {
         })
 
         // Using the public interface
-        workout.clicks()
+        // workout.clicks()
+    }
+
+    _setLocalStorage() {
+        // Local storage is a api that browser provide to us.
+        localStorage.setItem('workout', JSON.stringify(this._workout)) // This JSON.stringify method transform any object to a string in javascript.
+    }
+
+    _getLocalStorage() {
+       const data = JSON.parse(localStorage.getItem('workout')) // When we convert an object to a string an convert to an object agn we lost the prototype chain.
+       console.log(data)
+
+       if(!data) return;
+
+       this._workout = data
+
+       this._workout.forEach(work => {
+           this._renderWorkout(work)
+       }) 
+    }
+
+    reset() {
+        localStorage.removeItem('workout')
+        location.reload()
     }
 }
 
